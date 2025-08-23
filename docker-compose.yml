@@ -1,0 +1,46 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16
+    container_name: miniapi_postgres
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppass
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro # データベース初期化スクリプトのマウント
+    healthcheck: # ヘルスチェック設定
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./api
+    container_name: miniapi_api
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432 # DBのポート設定
+      DATABASE_USER: appuser
+      DATABASE_PASSWORD: apppass
+      DATABASE_NAME: appdb
+      NODE_ENV: development
+      PORT: 3000 # APIのポート設定
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+  
+  nginx:
+    image:  nginx:1.27-alpine
+    container_name: miniapi_nginx
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - api
