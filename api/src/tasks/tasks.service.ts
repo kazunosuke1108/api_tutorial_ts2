@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 // Serviceに他のところで定義した処理を注入(突っ込める)ようにする
 import { InjectRepository } from '@nestjs/typeorm';
 // TypeORM製のリポジトリ(DBとの翻訳)を注入するためのヘルパー
@@ -34,7 +34,17 @@ export class TasksService {
     return this.repo.findOneBy({ id });
   }
 
-  // 関数4つ目：特定のIDのログを削除する
+  // 関数4つ目；doneの更新
+  async updateDone(id: number, done: boolean) {
+    const taskToUpdate = await this.repo.findOneBy({ id });
+    if (!taskToUpdate) {
+      throw new NotFoundException(`Task ${id} not found`);
+    }
+    taskToUpdate.done = done;
+    return this.repo.save(taskToUpdate);
+  }
+
+  // 関数5つ目：特定のIDのログを削除する
   remove(id: number) {
     return this.repo.delete({ id });
   }

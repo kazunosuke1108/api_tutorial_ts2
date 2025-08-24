@@ -135,6 +135,14 @@ N-->>C: 201 Created (+x-request-id, x-transaction-id)
 - どのテーブル(エンティティ)を扱うのか
 - DBのユーザ名・PWなど
 
+# 3. 追加実装
+# 3.1 DELETE (this.repo.delete)
+- 指定したIDのタスクを消す (serviceとcontrollerに書き足すだけ)
+# 3.2 PATCH (this.repo.save)
+- doneのboolean書き換え (serviceとcontrollerに書き足すだけ)
+# 3.3 pgadminの追加
+- docker-compose.ymlに書き足してbuildするだけ
+
 # メモ
 ## 注入(Inject)ってなに？
 - その場その場で処理を定義するのではなく、外部で定義した処理を持ってくること

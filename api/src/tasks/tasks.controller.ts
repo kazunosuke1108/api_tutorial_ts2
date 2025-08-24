@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Query, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Patch, Body, Query, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TasksService } from './tasks.service'; // serviceロジックの読込
 import { CreateTaskDto } from './dto/create-task.dto'; // I/Oの記述の読込
@@ -32,6 +32,18 @@ export class TasksController {
   findOne(@Param('id', ParseIntPipe) id: number) {
     // :idの部分をnumber型として取得する (例: /tasks/3 -> id=3)
     return this.service.findOne(id);
+  }
+
+  @Patch(':id/done')
+  @ApiOperation({ summary: 'Mark the task as done' })
+  updateDone(@Param('id', ParseIntPipe) id: number) {
+    return this.service.updateDone(id, true);
+  }
+
+  @Patch(':id/undone')
+  @ApiOperation({ summary: 'Mark the task as undone' })
+  updateUnDone(@Param('id', ParseIntPipe) id: number) {
+    return this.service.updateDone(id, false);
   }
 
   @Delete(':id')

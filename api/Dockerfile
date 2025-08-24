@@ -39,3 +39,4 @@ COPY --from=build /app/dist ./dist
 # ビルド済みの成果物（distフォルダ）をコピー
 CMD [ "node", "dist/src/main.js" ]                  
 # コンテナ起動時にアプリを実行
+
