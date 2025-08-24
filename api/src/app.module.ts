@@ -1,8 +1,8 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TaskModule } from './tasks/tasks.module';
+import { TasksModule } from './tasks/tasks.module';
 import { LoggingMiddleware } from './common/logging.middleware';
-import { Task } from './tasks/entities/tasks.entity';
+import { Task } from './tasks/entities/task.entity';
 // tasks.entityで今回扱うDBのクラスを定義しており、その名前がTask。
 
 // import { AppController } from './app.controller';

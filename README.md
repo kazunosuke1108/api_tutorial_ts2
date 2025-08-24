@@ -11,6 +11,28 @@
 - データベース
   - TypeORM
   - PostgreSQL
+
+# 作成物
+```mermaid
+sequenceDiagram
+title タスク作成フロー（/tasks）
+autonumber
+participant C as Client
+participant N as nginx
+participant A as Nest API
+participant D as PostgreSQL
+
+
+C->>N: POST /api/tasks {title, description}
+N->>A: /tasks (proxy)
+A->>A: LoggingMiddleware: reqId発行/継承
+A->>A: ValidationPipe + DTO
+A->>D: INSERT INTO tasks (...)
+D-->>A: inserted row
+A->>A: RequestIdInterceptor: x-transaction-id付与
+A-->>N: 201 Created (+headers)
+N-->>C: 201 Created (+x-request-id, x-transaction-id)
+```
 # 1. docker作り
 ## 1.1 docker-compose.yml
 - 作成物: ```docker-compose.yml```
