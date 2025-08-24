@@ -142,7 +142,10 @@ N-->>C: 201 Created (+x-request-id, x-transaction-id)
 - doneのboolean書き換え (serviceとcontrollerに書き足すだけ)
 # 3.3 pgadminの追加
 - docker-compose.ymlに書き足してbuildするだけ
-
+- pgAdminへのログイン方法
+  - email: docker-compose.ymlで指定したもの
+  - password: docker-compose.ymlで指定したもの
+  - ログイン後、Serversを右クリックして必要情報を入力。Host, Username, Passwordはdocker-compose.ymlのpostgresで指定したもの
 # メモ
 ## 注入(Inject)ってなに？
 - その場その場で処理を定義するのではなく、外部で定義した処理を持ってくること
