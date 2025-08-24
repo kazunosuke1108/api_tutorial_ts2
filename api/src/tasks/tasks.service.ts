@@ -33,4 +33,9 @@ export class TasksService {
   findOne(id: number) {
     return this.repo.findOneBy({ id });
   }
+
+  // 関数4つ目：特定のIDのログを削除する
+  remove(id: number) {
+    return this.repo.delete({ id });
+  }
 }
