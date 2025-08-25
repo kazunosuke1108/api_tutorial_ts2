@@ -1,8 +1,10 @@
 import { Controller, Get, Post, Delete, Patch, Body, Query, Param, ParseIntPipe } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TasksService } from './tasks.service'; // serviceロジックの読込
 import { CreateTaskDto } from './dto/create-task.dto'; // I/Oの記述の読込
+import  { UpdateTaskDto } from './dto/update-task.dto';
 import { GetTasksDto } from './dto/get-tasks.dto';
+import { Task } from './entities/task.entity';
 
 @ApiTags('tasks') // Swagger上では"task"というタグにまとめる
 @Controller('tasks') // /tasksに対応するcontrollerですよ
@@ -32,6 +34,17 @@ export class TasksController {
   findOne(@Param('id', ParseIntPipe) id: number) {
     // :idの部分をnumber型として取得する (例: /tasks/3 -> id=3)
     return this.service.findOne(id);
+  }
+
+  @Patch(':id/update')
+  @ApiOperation({
+    summary: 'Partially update a task',
+    operationId: 'patchTask',
+  })
+  @ApiOkResponse({ description: 'Updated task', type: Task })
+  @ApiNotFoundResponse({ description: 'Not found' })
+  patchTask(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTaskDto) {
+    return this.service.updatePartial(id, dto);
   }
 
   @Patch(':id/done')

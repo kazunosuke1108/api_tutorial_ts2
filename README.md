@@ -157,7 +157,27 @@ N-->>C: 201 Created (+x-request-id, x-transaction-id)
 - swagger.tsに出力コードを追記
 - docker-compose.ymlにて、コンテナ内に出力したものをHost側にマウントすることも忘れずに。
 ## 4.3 openapi.jsonに追記
+- 仕様を書きこむ
+## 4.4 コードを生成
+- javaを入れる
+  ```shell
+  winget install EclipseAdoptium.Temurin.17.JDK
+  java --version
+  ```
+- 生成
+  ```shell
+  # クライアント（フロントで使える型安全SDK）
+  npx @openapitools/openapi-generator-cli generate ^
+    -i ./openapi/openapi.json ^
+    -g typescript-axios ^
+    -o ./gen-client
 
+  # サーバ（NestJS のコントローラ雛形）
+  npx @openapitools/openapi-generator-cli generate ^
+    -i ./openapi/openapi.json ^
+    -g typescript-nestjs ^
+    -o ./gen-server
+  ```
 # メモ
 ## 注入(Inject)ってなに？
 - その場その場で処理を定義するのではなく、外部で定義した処理を持ってくること

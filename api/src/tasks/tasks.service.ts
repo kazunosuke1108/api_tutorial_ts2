@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 // DBと紐づいたクラスのエンティティ
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 // APIの入出力定義
 
 @Injectable()
@@ -47,5 +48,13 @@ export class TasksService {
   // 関数5つ目：特定のIDのログを削除する
   remove(id: number) {
     return this.repo.delete({ id });
+  }
+
+  // 関数6つ目：指定したIDのタスク内容を書き換える
+  async updatePartial(id: number, dto: UpdateTaskDto) {
+    const task = await this.repo.findOneBy({ id });
+    if (!task) throw new NotFoundException(`Task ${id} not found`);
+    Object.assign(task, dto);
+    return this.repo.save(task);
   }
 }

@@ -72,46 +72,6 @@
           "tasks"
         ]
       },
-      "patch": {
-        "summary": "Partially update a task",
-        "operationId": "patchTask",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateTaskDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated task",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Task"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      },
       "delete": {
         "operationId": "TasksController_remove",
         "parameters": [
@@ -218,23 +178,6 @@
         "required": [
           "title"
         ]
-      },
-      "UpdateTaskDto": {
-        "type": "object",
-        "minPropperties": 1,
-        "properties": {
-          "title": {
-            "type": "string",
-            "maxLength": 200
-          },
-          "description": {
-            "type": "string"
-          },
-          "done": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
       }
     }
   }
