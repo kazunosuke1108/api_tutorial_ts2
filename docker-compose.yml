@@ -34,6 +34,9 @@ services:
         condition: service_healthy
     ports:
       - "3000:3000"
+    volumes:
+      - ./api:/app
+      - ./openapi:/app/openapi-out
   
   nginx:
     image:  nginx:1.27-alpine

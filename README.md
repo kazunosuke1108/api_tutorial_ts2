@@ -146,6 +146,18 @@ N-->>C: 201 Created (+x-request-id, x-transaction-id)
   - email: docker-compose.ymlで指定したもの
   - password: docker-compose.ymlで指定したもの
   - ログイン後、Serversを右クリックして必要情報を入力。Host, Username, Passwordはdocker-compose.ymlのpostgresで指定したもの
+
+# 4. OpenAPI
+## 4.1 OpenAPIとは
+- OpenAPI: APIの仕様書を標準化したフォーマット
+  - コードから仕様書を作れる
+  - 仕様書からコードの雛形を生成することも可能(詳細は自分で埋めていく)
+- Swagger UIは、OpenAPI仕様をNestJSが吐き出したものを見せている
+## 4.2 openapi.jsonを出力し、現状のAPI仕様を書きだす
+- swagger.tsに出力コードを追記
+- docker-compose.ymlにて、コンテナ内に出力したものをHost側にマウントすることも忘れずに。
+## 4.3 openapi.jsonに追記
+
 # メモ
 ## 注入(Inject)ってなに？
 - その場その場で処理を定義するのではなく、外部で定義した処理を持ってくること

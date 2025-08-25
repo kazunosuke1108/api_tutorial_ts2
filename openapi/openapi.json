@@ -1,0 +1,184 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/tasks": {
+      "post": {
+        "operationId": "TasksController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Create a task",
+        "tags": [
+          "tasks"
+        ]
+      },
+      "get": {
+        "operationId": "TasksController_findAll",
+        "parameters": [
+          {
+            "name": "done",
+            "required": false,
+            "in": "query",
+            "description": "true or false",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get task list"
+          }
+        },
+        "summary": "List tasks",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{id}": {
+      "get": {
+        "operationId": "TasksController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get a task by id",
+        "tags": [
+          "tasks"
+        ]
+      },
+      "delete": {
+        "operationId": "TasksController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Delete a task by id",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{id}/done": {
+      "patch": {
+        "operationId": "TasksController_updateDone",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Mark the task as done",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{id}/undone": {
+      "patch": {
+        "operationId": "TasksController_updateUnDone",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Mark the task as undone",
+        "tags": [
+          "tasks"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "API",
+    "description": "API description",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "API",
+      "description": ""
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "CreateTaskDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Write sequence diagram"
+          },
+          "description": {
+            "type": "string",
+            "example": "Draw mermaid sequence for API flow"
+          },
+          "done": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "title"
+        ]
+      }
+    }
+  }
+}
