@@ -181,6 +181,44 @@ N-->>C: 201 Created (+x-request-id, x-transaction-id)
 ## 4.5 生成されたコードを参考に、自分でコードを書いていく
 - 既存コードに追記してくれるわけではなく、コピペで完結するわけでもない。
 
+# 5. E-R図
+## 5.1 E-R図とは
+- システムが管理する「もの」 (実体・Entity)とその「関係性」(Relationship)を図示するもの
+- Entity
+  - 管理したいもの
+  - 例：ユーザ・タスク
+- Attribute
+  - Entityの中にAttribute(属性)がある
+  - 例：タスクのタイトル・完了/未完了フラグ
+- Relationship
+  - Entity同士のつながり
+  - 例：ユーザがタスクを作成する
+## 書き方
+1. 管理したいもの(Entity)の列記
+2. Entityが持つ情報(Attribute)の整理
+3. Entity間の関係性を整理
+## 例
+```mermaid
+erDiagram
+  User ||--|{ Task: "作成"
+
+  User {
+    int id
+    string name
+    string email
+    string password
+  }
+
+  Task {
+    int id
+    string title
+    string description
+    boolean done
+    datetime createdAt
+    datetime updatedAt
+  }
+```
+
 # メモ
 ## 注入(Inject)ってなに？
 - その場その場で処理を定義するのではなく、外部で定義した処理を持ってくること
@@ -258,3 +296,42 @@ N-->>C: 201 Created (+x-request-id, x-transaction-id)
 ## バリデーションってなに
 - APIのリクエストに入っているデータが指定された規則に従っているかを確認すること
 - コーディング時ではなく、プログラムの実行時に確認する
+
+## 複数サービスをまたぐデータに対して、どうIDを振るべきか
+### 基本知識
+- 一番初めにリクエストを受け取った部分(UIサービスなど)でIDを生成
+- 生成したIDを後続の処理で必ず引数に含める
+  - このIDを`X-Request-Id`と名付けることが慣例
+- そのIDをログにも載せておく
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant A as Service A (API Gateway)
+  participant B as Service B
+  participant C2 as Service C
+
+  Note over C: 最初に X-Request-Id を生成（例: UUID）
+  C->>A: HTTP POST /tasks (X-Request-Id: abc123, traceparent)
+  A->>A: ログ: {requestId: "abc123", span: "A.handle"}
+  A->>B: HTTP POST /analyze (X-Request-Id: abc123, traceparent 継承)
+  B->>B: ログ: {requestId: "abc123", span: "B.analyze"}
+  B->>C2: HTTP POST /store (X-Request-Id: abc123, traceparent 継承)
+  C2->>C2: ログ: {requestId: "abc123", span: "C.store"}
+  C2-->>B: 200
+  B-->>A: 200
+  A-->>C: 200
+  Note over C,C2: どのログも requestId=abc123 で横断検索可能
+```
+
+### 関連知識
+- IDをどう振るか
+  - UUID v4がお勧め。
+  - 時系列で並びやすいIDが良いならULIDというものも。
+- クエリとヘッダ
+  - クエリ：URLの末尾に「?」に続いて加えられる情報
+  - ヘッダ：通信上のラベル・伝票。
+    - curlなら「-H」オプションの後に続く情報
+    - axiosなら「headers」というものを付ける
+- ログを残す方法
+  - Pino, Winstonなど。
