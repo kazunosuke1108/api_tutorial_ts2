@@ -37,6 +37,8 @@ services:
     volumes:
       - ./api:/app
       - ./openapi:/app/openapi-out
+    command: npm run start:dev   
+
   
   nginx:
     image:  nginx:1.27-alpine
