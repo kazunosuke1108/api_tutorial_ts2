@@ -219,6 +219,129 @@ erDiagram
   }
 ```
 
+# 6. フロントエンドの追加（原文）
+- `api-tutorial-ts`を参考に、タスクAPIをGUIから叩いて、結果を表示する
+## 6.1 GUIの作成
+- `npx create-react-app task-app --template typescript`でテンプレを作る
+- `Dockerfile`を作成
+  - ホットリロード対応版として、`Dockerfile.dev`を作成。
+- docker-compose.ymlも書き換え
+  - ホットリロード対応の場合、dockerfileのpathを書く必要あり。
+## 6.2 GUIからAPIを叩く
+- App.tsxに記載。ここでのAPIのエンドポイントの書き方には留意が必要。
+## 6.3 めんどくさいところ
+### 問題
+- どのポートから触りに行くかで、うまく動く/動かないが違う
+- 5173: frontendに直接触りに行く
+- 3000: APIを直接触りに行く
+- 80: nginxを経由して触りに行く【ここを必ず通るように統一すべき】
+  - 同じコーディングでも、5173から操作するとAPIが叩けなかったりする
+### 解決策
+- 80からアクセスすることに統一する
+- frontendからAPIを飛ばすときも、localhost...などは省略して、/api/tasks などと呼ぶようにする。
+
+# 6. フロントエンドの追加（GPT加筆）
+
+タスクAPIを**GUI（React）から呼んで結果を画面に出す**ところまで実装。  
+**入口は Nginx の 80 番に一本化**して、フロントもAPIもそこで振り分ける形にしたのがポイント。
+
+---
+
+## 6.1 GUIの作成
+- `npx create-react-app task-app --template typescript` で雛形を作成（※今回は CRA。Vite ではない）。
+- Dockerfile を**2枚**用意するのがラク。
+  - **開発用（ホットリロード）**: `Dockerfile.dev`  
+    - `CMD ["npm", "start"]`（CRAの開発サーバ）
+    - `ENV CHOKIDAR_USEPOLLING=true`（Docker上でも変更検知を安定させる）
+    - `volumes: - ./task-app:/app` で**保存→即反映**
+  - **本番用（静的配信）**: `npm run build` → `serve` や `nginx:alpine` で `build/` を配信  
+    ※本番はホットリロードなし。確認用に使うときだけ。
+- `docker-compose.yml` は **Nginx 経由に統一**するなら、**frontend サービスの `ports:` を外す**と迷いが減る（直アクセスの抜け道を塞ぐ）。
+
+---
+
+## 6.2 GUIからAPIを叩く
+- **呼び先は相対パス**に統一するのが一番シンプル：  
+  フロントからは `fetch('/api/tasks')` と書く。  
+  Nginx が `/api` を API に中継してくれるので、**CORS 設定いらず**で動く。
+- もし絶対URLを使いたい場合（今回は不要）：
+  - CRA は `process.env.REACT_APP_*` 形式。`.env.development` に  
+    `REACT_APP_API_BASE=http://localhost/api`  
+    と書いて、`process.env.REACT_APP_API_BASE` を参照する。  
+  - **.env を変えたら再起動必須**（ホットリロードでは拾わない）。
+
+---
+
+## 6.3 めんどくさいところ（原因と解決）
+
+### 症状
+- **ポートによって挙動が変わる**／同じコードでも API が叩けないことがある。
+  - `5173` … **フロント直行**（Nginxを通らない）。`/api` もフロントに吸われて **HTML が返る** → `Unexpected token '<'`
+  - `3000` … **API直行**（APIを外に公開している場合）。Nginxを通らないので CORS が絡みやすい。
+  - `80` … **Nginx経由（推奨）**。`/` はフロント、`/api` はAPIに中継。Swagger もここから見られる。
+
+### 解決
+- **80 からアクセスに統一**（`http://localhost` を開く）。  
+- フロントの `fetch` は **相対パス `/api/...`** を使う。  
+- **frontend の `ports:` を外す**（＝ 5173/3000 でフロントに直行できないようにする）と事故が減る。
+- `Unexpected token '<'` は「JSON と思って読んだら **HTML を受け取っていた**」サイン。  
+  迷ったら `curl http://localhost/api/tasks` で Nginx 経由のレスポンスが **JSON** か確認。
+
+---
+
+## 6.4 Nginx 設定（方式A：/docs 統一・最小例）
+
+```nginx
+server {
+  listen 80;
+  server_name _;
+
+  location /healthz {
+    return 200 "ok";
+    add_header Content-Type text/plain;
+  }
+
+  # フロント（React）
+  location / {
+    proxy_pass http://frontend:3000/;
+    proxy_set_header Host $host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+  }
+
+  # API（/api を剥がして中継 → /tasks などに届く）
+  location /api/ {
+    proxy_pass http://api:3000/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  # Swagger を /docs/ で公開（末尾 / に統一して相対パス崩れを防ぐ）
+  location = /docs {
+    return 301 /docs/;
+  }
+  location /docs/ {
+    proxy_pass http://api:3000/api-docs/;
+    proxy_set_header Host $host;
+  }
+}
+```
+- これで http://localhost がフロント、http://localhost/api/... がAPI、
+http://localhost/docs/ が Swagger。
+
+## 6.5運用メモ（小ネタ）
+
+- ホットリロードは Dockerfile.dev + volumes でOK。保存すれば即反映。
+- .env を変えたら再起動（CRA はホットで env を拾わない）。
+- 動作確認の順番：
+  1. `curl http://localhost/api/tasks` で JSON を確認
+  2. `docker compose logs -f nginx api` を見ながらクリック → 両方にログが出ればルートOK
+  3.  直アクセスの事故を避けたいなら、frontend の ports: を外す（Nginx 以外の入口を消す）。
+
+---
+
 # メモ
 ## 注入(Inject)ってなに？
 - その場その場で処理を定義するのではなく、外部で定義した処理を持ってくること

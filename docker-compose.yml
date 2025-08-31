@@ -17,6 +17,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    networks:
+      - appnet
 
   api:
     build: ./api
@@ -38,6 +40,8 @@ services:
       - ./api:/app
       - ./openapi:/app/openapi-out
     command: npm run start:dev   
+    networks:
+      - appnet
 
   
   nginx:
@@ -49,6 +53,8 @@ services:
       - "80:80"
     depends_on:
       - api
+    networks:
+      - appnet
 
   pgadmin:
     image: dpage/pgadmin4:8
@@ -60,7 +66,42 @@ services:
     - "5050:80" # ブラウザからのアクセスはhttp://localhost:5050
     depends_on:
       - postgres
+    networks:
+      - appnet
 
+# frontend(本番用。5173でアクセス。buildし直さないと反映されない)
+  # frontend:
+  #   build: ./task-app  # ./task-app フォルダにあるDockerfileをビルド
+  #   # ポートの公開設定
+  #   # 例: Vite 開発サーバを 3000 で動かすDockerfileなら 5173:3000 とする
+  #   ports:
+  #     - "5173:3000"  # ホストの5173 → コンテナの3000
+  #   depends_on:
+  #     api:
+  #       condition: service_started  # backend が起動してから起動
+  #   networks:
+  #     - appnet
+
+# frontend(開発用。5173でアクセス。ホットリロード対応)
+  frontend:
+    build:
+      context: ./task-app
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:3000"   # CRA の dev サーバは3000固定
+    environment:
+      - HOST=0.0.0.0  # 外部からアクセスできるように
+    volumes:
+      - ./task-app:/app      # ローカル編集を即反映
+      - /app/node_modules    # node_modules はコンテナ側を保持
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      - appnet
+
+networks:
+  appnet:  # すべてのサービスが接続する共通ネットワーク
 
 volumes:
   pg_data:

@@ -1,0 +1,15 @@
+FROM node:18
+WORKDIR /app
+
+# 依存だけコピーして先にinstall
+COPY package*.json ./
+RUN npm install
+
+# ソースコードコピー
+COPY . .
+
+# Docker上でファイル変更検知を安定させる設定
+ENV CHOKIDAR_USEPOLLING=true
+
+EXPOSE 3000
+CMD ["npm", "start"]
